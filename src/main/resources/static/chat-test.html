@@ -14,7 +14,9 @@
         button:hover { background: #45a049; }
         button.disconnect { background: #f44336; }
         #messages { height: 300px; overflow-y: auto; border: 1px solid #ccc; border-radius: 4px; padding: 10px; background: #fafafa; }
-        .message { padding: 6px 10px; margin: 4px 0; border-radius: 4px; background: #e3f2fd; }
+        .message { padding: 6px 10px; margin: 4px 0; border-radius: 4px; }
+        .message.mine { background: #dcf8c6; }
+        .message.other { background: #e3f2fd; }
         .message .sender { font-weight: bold; color: #1565c0; }
         .message .time { font-size: 0.75em; color: #999; float: right; }
         #status { padding: 8px; border-radius: 4px; margin-bottom: 10px; }
@@ -26,20 +28,21 @@
 
 <h2>🐢 PATRICIA — Chat Service Test</h2>
 
-<!-- Conexion -->
 <div class="card">
     <h3>Conexión</h3>
     <div id="status" class="disconnected">Desconectado</div>
     <input type="text" id="parcheId" placeholder="ID del parche (UUID)" style="width: 300px"
            value="550e8400-e29b-41d4-a716-446655440000"/>
+    <br>
     <input type="text" id="userId" placeholder="Tu userId (UUID)" style="width: 300px"
            value="123e4567-e89b-12d3-a456-426614174000"/>
+    <input type="text" id="userName" placeholder="Tu nombre" style="width: 150px"
+           value="Usuario 1"/>
     <br>
     <button onclick="connect()">Conectar</button>
     <button class="disconnect" onclick="disconnect()">Desconectar</button>
 </div>
 
-<!-- Chat -->
 <div class="card">
     <h3>Chat del Parche</h3>
     <div id="messages"></div>
@@ -52,26 +55,25 @@
 <script>
     let stompClient = null;
     let parcheId = null;
+    let myUserId = null;
 
     function connect() {
         parcheId = document.getElementById('parcheId').value;
-        const userId = document.getElementById('userId').value;
+        myUserId = document.getElementById('userId').value;
+        const userName = document.getElementById('userName').value || 'Usuario';
 
         const socket = new SockJS('http://localhost:8084/ws/chat');
         stompClient = Stomp.over(socket);
-        stompClient.debug = null; // silenciar logs de STOMP
+        stompClient.debug = null;
 
         stompClient.connect(
-            { userId: userId },
+            { userId: myUserId, userName: userName },
             function (frame) {
                 setStatus(true);
-
-                // Suscribirse al canal del parche
                 stompClient.subscribe('/topic/parches/' + parcheId, function (message) {
                     showMessage(JSON.parse(message.body));
                 });
-
-                log('Sistema', 'Conectado al parche ' + parcheId);
+                log('Sistema', 'Conectado como ' + userName);
             },
             function (error) {
                 setStatus(false);
@@ -90,12 +92,13 @@
 
     function sendMessage() {
         const content = document.getElementById('messageInput').value;
+        const userName = document.getElementById('userName').value || 'Usuario';
         if (!content.trim() || !stompClient) return;
 
         stompClient.send(
             '/app/parches/' + parcheId + '/messages',
             {},
-            JSON.stringify({ content: content, imageUrl: null })
+            JSON.stringify({ content: content, senderName: userName, imageUrl: null })
         );
 
         document.getElementById('messageInput').value = '';
@@ -104,9 +107,10 @@
     function showMessage(msg) {
         const div = document.getElementById('messages');
         const time = new Date(msg.sentAt).toLocaleTimeString();
+        const isMe = msg.senderId === myUserId;
         div.innerHTML += `
-            <div class="message">
-                <span class="sender">${msg.senderName || msg.senderId}</span>
+            <div class="message ${isMe ? 'mine' : 'other'}">
+                <span class="sender">${msg.senderName || 'Usuario'}</span>
                 <span class="time">${time}</span>
                 <div>${msg.content}</div>
             </div>`;
@@ -114,7 +118,7 @@
     }
 
     function log(sender, text) {
-        showMessage({ senderName: sender, content: text, sentAt: new Date() });
+        showMessage({ senderName: sender, content: text, sentAt: new Date(), senderId: null });
     }
 
     function setStatus(connected) {

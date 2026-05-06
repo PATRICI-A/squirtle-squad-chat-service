@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  chat-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: squirtle-chat-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/squirtle_db
+      - SPRING_DATASOURCE_USERNAME=squirtle_user
+      - SPRING_DATASOURCE_PASSWORD=squirtle_pass
+      - SPRING_RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - postgres
+      - rabbitmq
+
+  notification-service:
+    # Esqueleto inicial - Reemplazar con 'build: context: ../notification-service' cuando exista
+    image: alpine:latest
+    container_name: squirtle-notification-service
+    command: tail -f /dev/null
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/squirtle_db
+      - SPRING_DATASOURCE_USERNAME=squirtle_user
+      - SPRING_DATASOURCE_PASSWORD=squirtle_pass
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_REDIS_HOST=redis
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+
+  connection-service:
+    # Esqueleto inicial - Reemplazar con 'build: context: ../connection-service' cuando exista
+    image: alpine:latest
+    container_name: squirtle-connection-service
+    command: tail -f /dev/null
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/squirtle_db
+      - SPRING_DATASOURCE_USERNAME=squirtle_user
+      - SPRING_DATASOURCE_PASSWORD=squirtle_pass
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: squirtle-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: squirtle_db
+      POSTGRES_USER: squirtle_user
+      POSTGRES_PASSWORD: squirtle_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    container_name: squirtle-redis
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: squirtle-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+volumes:
+  postgres_data:

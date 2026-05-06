@@ -1,5 +1,36 @@
 # squirtle-squad-chat-service
 
+Para clonar y levantar el entorno local de desarrollo con un solo comando, sigue estos pasos:
+
+1. **Clonar el repositorio y entrar a la carpeta del microservicio**:
+   ```bash
+   git clone <URL_DEL_REPO>
+   cd squirtle-squad-chat-service
+   ```
+
+2. **Cambiar a la rama de desarrollo (develop)**:
+   ```bash
+   git checkout develop
+   ```
+   *(Nota: Si quieres probar esta feature específica antes de integrarla, usa `git checkout feature/setup-devops`)*
+
+3. **Levantar los servicios con Docker Compose**:
+   ```bash
+   docker-compose up -d --build
+   ```
+   Este comando levantará:
+   - El microservicio en el puerto `8082`.
+   - PostgreSQL 15 en el puerto `5432`.
+   - Redis en el puerto `6379`.
+   - RabbitMQ en el puerto `5672` (y la consola web de administración en `15672`).
+
+Para detener los servicios, simplemente ejecuta:
+```bash
+docker-compose down
+```
+
+---
+
 ## Tabla de Contenido
 
 1. [Descripción del Módulo](#1-descripción-del-módulo)

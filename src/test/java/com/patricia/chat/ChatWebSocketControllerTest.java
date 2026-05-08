@@ -45,7 +45,7 @@ class ChatWebSocketControllerTest {
 
         Principal principal = () -> senderId.toString();
 
-        when(sendMessageUseCase.sendMessage(eq(parcheId), eq(senderId), eq("Usuario de prueba"), eq("Hola"), isNull()))
+        when(sendMessageUseCase.sendMessage(eq(parcheId), eq(senderId), eq("Usuario"), eq("Hola"), isNull()))
                 .thenReturn(message);
         when(messageMapper.toResponse(message)).thenReturn(response);
 
@@ -73,7 +73,7 @@ class ChatWebSocketControllerTest {
         controller.handleMessage(parcheId, request, null);
 
         ArgumentCaptor<UUID> senderCaptor = ArgumentCaptor.forClass(UUID.class);
-        verify(sendMessageUseCase).sendMessage(eq(parcheId), senderCaptor.capture(), eq("Usuario de prueba"), eq("Hola"), isNull());
+        verify(sendMessageUseCase).sendMessage(eq(parcheId), senderCaptor.capture(), eq("Usuario"), eq("Hola"), isNull());
         assertThat(senderCaptor.getValue()).isNotNull();
         verify(messagingTemplate).convertAndSend("/topic/parches/" + parcheId, response);
     }

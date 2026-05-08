@@ -31,10 +31,8 @@ public class JwtUtil {
         return UUID.fromString(getClaims(token).getSubject());
     }
 
-    public String getSenderName(String token) {
-        Claims claims = getClaims(token);
-        String name = claims.get("name", String.class);
-        return (name != null) ? name : claims.get("email", String.class);
+    public String getEmail(String token) {
+        return getClaims(token).get("email", String.class);
     }
 
     public boolean isValid(String token) {

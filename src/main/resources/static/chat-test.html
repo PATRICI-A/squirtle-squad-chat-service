@@ -2,129 +2,221 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>PATRICIA — Chat Test</title>
+    <title>PATRICIA — Integration Test</title>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; }
+        body { font-family: Arial, sans-serif; max-width: 860px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; }
         h2 { color: #333; }
+        h3 { color: #444; margin-bottom: 12px; }
         .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        input, button { padding: 8px 12px; margin: 4px; border-radius: 4px; border: 1px solid #ccc; }
-        button { background: #4CAF50; color: white; border: none; cursor: pointer; }
-        button:hover { background: #45a049; }
-        button.disconnect { background: #f44336; }
-        #messages { height: 300px; overflow-y: auto; border: 1px solid #ccc; border-radius: 4px; padding: 10px; background: #fafafa; }
+        label { font-size: 13px; color: #555; display: block; margin-top: 8px; }
+        input { padding: 8px 12px; margin: 4px 4px 4px 0; border-radius: 4px; border: 1px solid #ccc; width: 320px; }
+        button { padding: 8px 16px; margin: 4px; border-radius: 4px; border: none; cursor: pointer; color: white; font-size: 14px; }
+        .btn-blue   { background: #1976d2; } .btn-blue:hover   { background: #1565c0; }
+        .btn-green  { background: #4CAF50; } .btn-green:hover  { background: #388e3c; }
+        .btn-red    { background: #f44336; } .btn-red:hover    { background: #c62828; }
+        .btn-purple { background: #7b1fa2; } .btn-purple:hover { background: #6a1b9a; }
+        .alert { padding: 8px 12px; border-radius: 4px; margin-top: 10px; font-size: 13px; }
+        .alert-ok  { background: #c8e6c9; color: #2e7d32; }
+        .alert-err { background: #ffcdd2; color: #c62828; }
+        .alert-inf { background: #e3f2fd; color: #1565c0; }
+        #token-display { font-size: 11px; word-break: break-all; background: #f8f8f8; border: 1px solid #ddd; border-radius: 4px; padding: 8px; margin-top: 8px; max-height: 64px; overflow-y: auto; color: #555; display: none; }
+        #messages { height: 280px; overflow-y: auto; border: 1px solid #ccc; border-radius: 4px; padding: 10px; background: #fafafa; margin-bottom: 12px; }
         .message { padding: 6px 10px; margin: 4px 0; border-radius: 4px; }
-        .message.mine { background: #dcf8c6; }
+        .message.mine  { background: #dcf8c6; }
         .message.other { background: #e3f2fd; }
         .message .sender { font-weight: bold; color: #1565c0; }
-        .message .time { font-size: 0.75em; color: #999; float: right; }
-        #status { padding: 8px; border-radius: 4px; margin-bottom: 10px; }
-        .connected { background: #c8e6c9; color: #2e7d32; }
+        .message .time   { font-size: 0.75em; color: #999; float: right; }
+        #ws-status { padding: 8px; border-radius: 4px; margin-bottom: 12px; }
+        .connected    { background: #c8e6c9; color: #2e7d32; }
         .disconnected { background: #ffcdd2; color: #c62828; }
+        .step-label { display: inline-block; background: #1976d2; color: white; border-radius: 50%; width: 22px; height: 22px; text-align: center; line-height: 22px; font-size: 12px; margin-right: 6px; }
     </style>
 </head>
 <body>
 
-<h2>🐢 PATRICIA — Chat Service Test</h2>
+<h2>🐢 PATRICIA — Integration Test</h2>
+<p style="color:#666;margin-bottom:20px;font-size:14px">
+    Proves Auth Service (9090) + Chat Service (8084) are connected end-to-end.
+</p>
 
+<!-- ── STEP 1: LOGIN ────────────────────────────────────────────────────── -->
 <div class="card">
-    <h3>Conexión</h3>
-    <div id="status" class="disconnected">Desconectado</div>
-    <input type="text" id="parcheId" placeholder="ID del parche (UUID)" style="width: 300px"
-           value="550e8400-e29b-41d4-a716-446655440000"/>
+    <h3><span class="step-label">1</span> Login — Auth Service :9090</h3>
+    <label>Email</label>
+    <input type="email" id="email" value="daniel.rsuarez@mail.escuelaing.edu.co" />
+    <label>Password</label>
+    <input type="password" id="password" placeholder="your password" />
     <br>
-    <input type="text" id="userId" placeholder="Tu userId (UUID)" style="width: 300px"
-           value="123e4567-e89b-12d3-a456-426614174000"/>
-    <input type="text" id="userName" placeholder="Tu nombre" style="width: 150px"
-           value="Usuario 1"/>
-    <br>
-    <button onclick="connect()">Conectar</button>
-    <button class="disconnect" onclick="disconnect()">Desconectar</button>
+    <button class="btn-blue" onclick="login()">Login &amp; get JWT</button>
+    <button class="btn-purple" onclick="validateToken()">Validate token (new endpoint)</button>
+    <div id="login-alert"></div>
+    <div id="token-display"></div>
 </div>
 
+<!-- ── STEP 2: WEBSOCKET CHAT ───────────────────────────────────────────── -->
 <div class="card">
-    <h3>Chat del Parche</h3>
-    <div id="messages"></div>
+    <h3><span class="step-label">2</span> Chat — Chat Service :8084</h3>
+    <div id="ws-status" class="disconnected">Desconectado</div>
+    <label>Parche ID (UUID)</label>
+    <input type="text" id="parcheId" value="550e8400-e29b-41d4-a716-446655440000" />
     <br>
-    <input type="text" id="messageInput" placeholder="Escribe un mensaje..." style="width: 400px"
-           onkeydown="if(event.key==='Enter') sendMessage()"/>
-    <button onclick="sendMessage()">Enviar</button>
+    <button class="btn-green" onclick="connect()">Conectar WebSocket con JWT</button>
+    <button class="btn-red"   onclick="disconnect()">Desconectar</button>
+    <br><br>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Escribe un mensaje..." style="width:500px"
+           onkeydown="if(event.key==='Enter') sendMessage()" />
+    <button class="btn-green" onclick="sendMessage()">Enviar</button>
 </div>
 
 <script>
+    const AUTH = 'http://localhost:9090';
+    const CHAT = 'http://localhost:8084';
+
+    let jwt = null;
+    let myUserId = null;
     let stompClient = null;
     let parcheId = null;
-    let myUserId = null;
 
+    // ── Shared fetch helper — never crashes on empty body ─────────────────────
+    async function safeFetch(url, options) {
+        const res  = await fetch(url, options);
+        const text = await res.text();
+        let data = null;
+        try { data = text ? JSON.parse(text) : null; } catch(_) { data = { raw: text }; }
+        return { res, data };
+    }
+
+    // ── Login ─────────────────────────────────────────────────────────────────
+    async function login() {
+        const email    = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        showAlert('login-alert', 'Iniciando sesión…', 'inf');
+
+        try {
+            const { res, data } = await safeFetch(`${AUTH}/api/v1/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (!res.ok) {
+                showAlert('login-alert', `Error ${res.status}: ${JSON.stringify(data)}`, 'err');
+                return;
+            }
+
+            jwt = data.accessToken;
+            try {
+                const payload = JSON.parse(atob(jwt.split('.')[1]));
+                myUserId = payload.sub;
+            } catch(_) {}
+
+            showAlert('login-alert', `Login exitoso. userId: ${myUserId}`, 'ok');
+            const box = document.getElementById('token-display');
+            box.style.display = 'block';
+            box.textContent = jwt;
+        } catch (e) {
+            showAlert('login-alert', `Network error: ${e.message}`, 'err');
+        }
+    }
+
+    // ── Validate token via new /validate endpoint (proves connection) ──────────
+    async function validateToken() {
+        if (!jwt) { showAlert('login-alert', 'Primero haz login para obtener un token', 'err'); return; }
+        showAlert('login-alert', 'Validando token en Auth Service…', 'inf');
+
+        try {
+            const { res, data } = await safeFetch(`${AUTH}/api/v1/auth/validate`, {
+                headers: { 'Authorization': `Bearer ${jwt}` }
+            });
+
+            if (!res.ok) {
+                showAlert('login-alert', `Validate error ${res.status}: ${JSON.stringify(data)}`, 'err');
+                return;
+            }
+            showAlert('login-alert',
+                `Token valido — userId: ${data.userId} | email: ${data.email}`, 'ok');
+        } catch (e) {
+            showAlert('login-alert', `Network error: ${e.message}`, 'err');
+        }
+    }
+
+    // ── WebSocket connect (uses JWT from login) ───────────────────────────────
     function connect() {
-        parcheId = document.getElementById('parcheId').value;
-        myUserId = document.getElementById('userId').value;
-        const userName = document.getElementById('userName').value || 'Usuario';
+        if (!jwt) { alert('Primero haz login para obtener un JWT'); return; }
+        parcheId = document.getElementById('parcheId').value.trim();
+        if (!parcheId) { alert('Ingresa un parcheId'); return; }
 
-        const socket = new SockJS('http://localhost:8084/ws/chat');
+        const socket = new SockJS(`${CHAT}/ws/chat`);
         stompClient = Stomp.over(socket);
         stompClient.debug = null;
 
         stompClient.connect(
-            { userId: myUserId, userName: userName },
+            { Authorization: `Bearer ${jwt}` },   // JWT validated by WebSocketConfig
             function (frame) {
-                setStatus(true);
-                stompClient.subscribe('/topic/parches/' + parcheId, function (message) {
-                    showMessage(JSON.parse(message.body));
+                setWsStatus(true);
+                stompClient.subscribe(`/topic/parches/${parcheId}`, function (msg) {
+                    showMessage(JSON.parse(msg.body));
                 });
-                log('Sistema', 'Conectado como ' + userName);
+                log('Sistema', 'Conectado con JWT. Escuchando parche: ' + parcheId);
             },
             function (error) {
-                setStatus(false);
-                log('Error', 'No se pudo conectar: ' + error);
+                setWsStatus(false);
+                log('Error', 'Conexion rechazada: ' + error);
             }
         );
     }
 
     function disconnect() {
-        if (stompClient) {
-            stompClient.disconnect();
-            stompClient = null;
-        }
-        setStatus(false);
+        if (stompClient) { stompClient.disconnect(); stompClient = null; }
+        setWsStatus(false);
     }
 
+    // ── Send message ──────────────────────────────────────────────────────────
     function sendMessage() {
-        const content = document.getElementById('messageInput').value;
-        const userName = document.getElementById('userName').value || 'Usuario';
-        if (!content.trim() || !stompClient) return;
+        const content = document.getElementById('messageInput').value.trim();
+        if (!content || !stompClient || !stompClient.connected) return;
 
         stompClient.send(
-            '/app/parches/' + parcheId + '/messages',
-            {},
-            JSON.stringify({ content: content, senderName: userName, imageUrl: null })
+            `/app/parches/${parcheId}/messages`, {},
+            JSON.stringify({ content, imageUrl: null })
         );
-
         document.getElementById('messageInput').value = '';
     }
 
+    // ── Helpers ───────────────────────────────────────────────────────────────
     function showMessage(msg) {
-        const div = document.getElementById('messages');
-        const time = new Date(msg.sentAt).toLocaleTimeString();
+        const box  = document.getElementById('messages');
+        const time = msg.sentAt ? new Date(msg.sentAt).toLocaleTimeString() : '';
         const isMe = msg.senderId === myUserId;
-        div.innerHTML += `
+        box.innerHTML += `
             <div class="message ${isMe ? 'mine' : 'other'}">
                 <span class="sender">${msg.senderName || 'Usuario'}</span>
                 <span class="time">${time}</span>
                 <div>${msg.content}</div>
             </div>`;
-        div.scrollTop = div.scrollHeight;
+        box.scrollTop = box.scrollHeight;
     }
 
     function log(sender, text) {
         showMessage({ senderName: sender, content: text, sentAt: new Date(), senderId: null });
     }
 
-    function setStatus(connected) {
-        const el = document.getElementById('status');
+    function setWsStatus(connected) {
+        const el = document.getElementById('ws-status');
         el.className = connected ? 'connected' : 'disconnected';
-        el.textContent = connected ? 'Conectado ✓' : 'Desconectado';
+        el.textContent = connected ? 'Conectado ✓ (JWT validado por Chat Service)' : 'Desconectado';
+    }
+
+    function showAlert(id, text, type) {
+        const el = document.createElement('div');
+        el.className = `alert alert-${type}`;
+        el.textContent = text;
+        const container = document.getElementById(id);
+        container.innerHTML = '';
+        container.appendChild(el);
     }
 </script>
 

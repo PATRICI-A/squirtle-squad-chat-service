@@ -12,6 +12,8 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+
 import java.security.Principal;
 import java.util.UUID;
 
@@ -39,7 +41,11 @@ public class ChatWebSocketController {
                 ? UUID.fromString(principal.getName())
                 : UUID.randomUUID();
 
-        String senderName = "Usuario de prueba";
+        String senderName = "Usuario";
+        if (principal instanceof UsernamePasswordAuthenticationToken auth
+                && auth.getDetails() instanceof String email) {
+            senderName = email;
+        }
 
         Message message = sendMessageUseCase.sendMessage(
                 parcheId, senderId, senderName,

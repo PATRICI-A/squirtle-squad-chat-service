@@ -14,7 +14,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import java.util.UUID;
 
 import java.util.List;
 
@@ -59,12 +58,22 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
                 if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    // TODO: validar JWT cuando Auth Service (Equipo 1) esté listo
-                    // Por ahora asignamos un usuario de prueba
-                    String userId = accessor.getFirstNativeHeader("userId");
-                    if (userId == null) userId = UUID.randomUUID().toString();
-                    accessor.setUser(new UsernamePasswordAuthenticationToken(
-                            userId, null, List.of()));
+                    String bearer = accessor.getFirstNativeHeader("Authorization");
+                    if (bearer == null || !bearer.startsWith("Bearer ")) {
+                        throw new org.springframework.messaging.MessageDeliveryException(
+                                "Missing or malformed Authorization header");
+                    }
+                    String token = bearer.substring(7);
+                    if (!jwtUtil.isValid(token)) {
+                        throw new org.springframework.messaging.MessageDeliveryException(
+                                "Invalid or expired JWT token");
+                    }
+                    String userId = jwtUtil.getUserId(token).toString();
+                    String email  = jwtUtil.getEmail(token);
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(userId, null, List.of());
+                    auth.setDetails(email);
+                    accessor.setUser(auth);
                 }
                 return message;
             }

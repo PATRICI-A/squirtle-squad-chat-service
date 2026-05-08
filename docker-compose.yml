@@ -1,0 +1,93 @@
+services:
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: patricia-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
+    networks:
+      - patricia-network
+
+  notification-service:
+    build:
+      context: ../squirtle-squad-notification-service-1
+      dockerfile: Dockerfile
+    container_name: patricia-notification-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - SPRING_MAIL_USERNAME=${MAIL_USERNAME}
+      - SPRING_MAIL_PASSWORD=${MAIL_PASSWORD}
+    depends_on:
+      - rabbitmq
+    restart: on-failure
+    networks:
+      - patricia-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: patricia-redis
+    restart: unless-stopped
+    networks:
+      - patricia-network
+
+  auth-service:
+    build:
+      context: ../snorlax-energy-auth-service
+      dockerfile: Dockerfile
+    container_name: patricia-auth-service
+    ports:
+      - "9090:9090"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - PORT=9090
+      - SERVER_PORT=9090
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=900000
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_SSL=false
+      - MAIL_DEV_MODE=true
+      - NOTIFICATION_RABBITMQ_ENABLED=true
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - USER_SERVICE_URL=http://44.203.135.235:8080
+    depends_on:
+      - redis
+      - rabbitmq
+    restart: unless-stopped
+    networks:
+      - patricia-network
+
+  chat-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: squirtle-chat-service
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb+srv://ders14028_db_user:ders210021@cluster0.1p8nobv.mongodb.net/patricia_chat?retryWrites=true&w=majority&appName=Cluster0
+      - SPRING_DATA_MONGODB_DATABASE=patricia_chat
+      - JWT_SECRET=${JWT_SECRET}
+      - AUTH_SERVICE_URL=http://auth-service:9090
+      - PARCHE_SERVICE_URL=http://44.203.135.235:8080
+    depends_on:
+      - auth-service
+    restart: on-failure
+    networks:
+      - patricia-network
+
+networks:
+  patricia-network:
+    driver: bridge
+    name: patricia-network

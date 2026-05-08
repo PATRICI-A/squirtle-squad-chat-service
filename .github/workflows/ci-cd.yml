@@ -22,7 +22,7 @@ jobs:
   # MongoDB Atlas es accesible desde el runner de GitHub Actions.
   # ═══════════════════════════════════════════════════════════════════════════
   build-and-test:
-    name: "CI – Build & Test (JDK 21)"
+    name: build-and-test
     runs-on: ubuntu-latest
 
     steps:

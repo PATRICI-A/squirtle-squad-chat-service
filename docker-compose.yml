@@ -1,4 +1,3 @@
-feature/setup-devops
 version: '3.8'
 
 services:
@@ -171,4 +170,3 @@ networks:
   patricia-network:
     driver: bridge
     name: patricia-network
-    main

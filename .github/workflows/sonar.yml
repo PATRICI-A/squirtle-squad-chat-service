@@ -52,6 +52,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           MONGO_URI: ${{ secrets.MONGO_URI_TEST }}
+          SPRING_PROFILES_ACTIVE: test
 
         run: |
           mvn clean verify sonar:sonar -B \

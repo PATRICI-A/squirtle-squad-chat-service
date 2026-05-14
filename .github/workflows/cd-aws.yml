@@ -52,7 +52,6 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            --build-arg SSL_KEY_STORE_PASSWORD=${{ secrets.SSL_KEY_STORE_PASSWORD }} \
             -t $ECR_REPOSITORY:${{ github.sha }} .
 
       # =========================================
@@ -91,11 +90,11 @@ jobs:
           image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
           environment-variables: |
             SPRING_PROFILES_ACTIVE=prod
-            SSL_KEY_STORE_PASSWORD=${{ secrets.SSL_KEY_STORE_PASSWORD }}
-            MONGO_URI=${{ secrets.MONGO_URI }}
-            CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
-            CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
-            CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+            SPRING_DATA_MONGODB_URI=${{ secrets.SPRING_DATA_MONGODB_URI }}
+            SPRING_DATA_MONGODB_DATABASE=${{ secrets.SPRING_DATA_MONGODB_DATABASE }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            AUTH_SERVICE_URL=${{ secrets.AUTH_SERVICE_URL }}
+            PARCHE_SERVICE_URL=${{ secrets.PARCHE_SERVICE_URL }}
 
       # =========================================
       # Deploy to ECS

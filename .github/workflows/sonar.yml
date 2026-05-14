@@ -56,5 +56,7 @@ jobs:
         run: |
           mvn clean verify sonar:sonar -B \
             -Dsonar.projectKey=PATRICI-A_chat-service \
+            -Dsonar.organization=patrici-a \
+            -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=${SONAR_TOKEN} \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml

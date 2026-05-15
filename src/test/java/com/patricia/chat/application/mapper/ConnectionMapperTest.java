@@ -1,4 +1,4 @@
-package com.patricia.chat;
+package com.patricia.chat.application.mapper;
 
 import com.patricia.chat.application.dto.response.ConnectionResponse;
 import com.patricia.chat.application.mapper.ConnectionMapper;

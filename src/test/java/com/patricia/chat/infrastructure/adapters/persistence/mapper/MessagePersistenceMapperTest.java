@@ -1,4 +1,4 @@
-package com.patricia.chat;
+package com.patricia.chat.infrastructure.adapters.persistence.mapper;
 
 import com.patricia.chat.domain.model.Message;
 import com.patricia.chat.domain.model.MessageType;

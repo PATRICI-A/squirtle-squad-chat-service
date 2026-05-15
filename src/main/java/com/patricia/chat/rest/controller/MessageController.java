@@ -3,6 +3,8 @@ package com.patricia.chat.rest.controller;
 import com.patricia.chat.application.dto.response.MessageResponse;
 import com.patricia.chat.application.mapper.MessageMapper;
 import com.patricia.chat.domain.ports.in.GetMessageHistoryUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -13,10 +15,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 /**
- * Endpoints REST para consultar el historial de mensajes de un parche.
+ * REST controller for retrieving chat message histories.
+ * Provides paginated access to the messages of a specific Parche group.
  */
 @RestController
 @RequestMapping("/api/parches/{parcheId}/messages")
+@Tag(name = "Messages", description = "Endpoints for retrieving Parche chat histories")
 public class MessageController {
 
     private final GetMessageHistoryUseCase getMessageHistoryUseCase;
@@ -29,10 +33,16 @@ public class MessageController {
     }
 
     /**
-     * GET /api/parches/{parcheId}/messages?page=0&size=20
-     * Retorna el historial paginado de mensajes del parche.
-     * Solo accesible para miembros activos.
+     * Retrieves the paginated message history of a Parche.
+     * The requester must be an active member of the Parche.
+     * 
+     * @param parcheId the UUID of the Parche
+     * @param page the page number to retrieve (0-indexed)
+     * @param size the maximum number of messages per page
+     * @param auth the current user's authentication
+     * @return a paginated response containing the messages sorted chronologically
      */
+    @Operation(summary = "Get message history", description = "Retrieves a paginated list of chat messages for a specific Parche.")
     @GetMapping
     public ResponseEntity<Page<MessageResponse>> getHistory(
             @PathVariable UUID parcheId,

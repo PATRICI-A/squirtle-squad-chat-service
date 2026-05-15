@@ -17,6 +17,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import java.security.Principal;
 import java.util.UUID;
 
+/**
+ * WebSocket controller for handling real-time chat messages via STOMP.
+ * Listens for incoming messages to a Parche and broadcasts them to subscribers.
+ */
 @Controller
 public class ChatWebSocketController {
 
@@ -32,6 +36,15 @@ public class ChatWebSocketController {
         this.messageMapper      = messageMapper;
     }
 
+    /**
+     * Handles incoming messages from clients for a specific Parche.
+     * Persists the message using the use case and broadcasts the result to all
+     * users subscribed to the Parche's topic.
+     *
+     * @param parcheId the UUID of the Parche where the message is sent
+     * @param request the payload containing message text or media
+     * @param principal the authenticated user principal
+     */
     @MessageMapping("/parches/{parcheId}/messages")
     public void handleMessage(@DestinationVariable UUID parcheId,
                               @Valid @Payload SendMessageRequest request,

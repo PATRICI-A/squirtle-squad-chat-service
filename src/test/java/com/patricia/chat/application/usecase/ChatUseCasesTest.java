@@ -241,4 +241,95 @@ class ChatUseCasesTest {
 
         verify(messageRepository, never()).findByParcheId(any(), any());
     }
+
+    // =========================================================
+    // RF41 — Chat Privado 1 a 1
+    // =========================================================
+
+    @Test
+    void sendPrivateMessage_savesTextMessageWhenConnectionIsActive() {
+        UUID senderId = UUID.randomUUID();
+        UUID receiverId = UUID.randomUUID();
+
+        when(connectionRepository.hasActiveConnection(senderId, receiverId)).thenReturn(true);
+        when(messageRepository.save(any(Message.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Message result = sendMessageUseCase.sendPrivateMessage(senderId, "Ana", receiverId, "Hola amigo!", null);
+
+        assertThat(result.getType()).isEqualTo(MessageType.TEXT);
+        assertThat(result.getReceiverId()).isEqualTo(receiverId);
+        assertThat(result.getSenderId()).isEqualTo(senderId);
+        assertThat(result.getContent()).isEqualTo("Hola amigo!");
+        assertThat(result.getImageUrl()).isNull();
+        verify(messageRepository).save(any(Message.class));
+    }
+
+    @Test
+    void sendPrivateMessage_savesImageMessageWhenConnectionIsActive() {
+        UUID senderId = UUID.randomUUID();
+        UUID receiverId = UUID.randomUUID();
+
+        when(connectionRepository.hasActiveConnection(senderId, receiverId)).thenReturn(true);
+        when(messageRepository.save(any(Message.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Message result = sendMessageUseCase.sendPrivateMessage(
+                senderId, "Ana", receiverId, "Mira esta foto", "https://img.test/foto.png");
+
+        assertThat(result.getType()).isEqualTo(MessageType.IMAGE);
+        assertThat(result.getImageUrl()).isEqualTo("https://img.test/foto.png");
+        assertThat(result.getReceiverId()).isEqualTo(receiverId);
+        verify(messageRepository).save(any(Message.class));
+    }
+
+    @Test
+    void sendPrivateMessage_throwsWhenNoActiveConnection() {
+        UUID senderId = UUID.randomUUID();
+        UUID receiverId = UUID.randomUUID();
+
+        when(connectionRepository.hasActiveConnection(senderId, receiverId)).thenReturn(false);
+
+        assertThatThrownBy(() ->
+                sendMessageUseCase.sendPrivateMessage(senderId, "Ana", receiverId, "Hola", null))
+                .isInstanceOf(UnauthorizedChatAccessException.class)
+                .hasMessageContaining(receiverId.toString());
+
+        verify(messageRepository, never()).save(any());
+    }
+
+    @Test
+    void getPrivateHistory_returnsPageWhenConnectionIsActive() {
+        UUID requesterId = UUID.randomUUID();
+        UUID friendId = UUID.randomUUID();
+        Pageable pageable = PageRequest.of(0, 20);
+
+        Message message = new Message();
+        message.setId(UUID.randomUUID());
+        message.setSenderId(requesterId);
+        message.setReceiverId(friendId);
+        Page<Message> page = new PageImpl<>(List.of(message), pageable, 1);
+
+        when(connectionRepository.hasActiveConnection(requesterId, friendId)).thenReturn(true);
+        when(messageRepository.findPrivateMessages(requesterId, friendId, pageable)).thenReturn(page);
+
+        Page<Message> result = getMessageHistoryUseCase.getPrivateHistory(requesterId, friendId, pageable);
+
+        assertThat(result.getContent()).containsExactly(message);
+        verify(messageRepository).findPrivateMessages(requesterId, friendId, pageable);
+    }
+
+    @Test
+    void getPrivateHistory_throwsWhenNoActiveConnection() {
+        UUID requesterId = UUID.randomUUID();
+        UUID friendId = UUID.randomUUID();
+        Pageable pageable = PageRequest.of(0, 20);
+
+        when(connectionRepository.hasActiveConnection(requesterId, friendId)).thenReturn(false);
+
+        assertThatThrownBy(() ->
+                getMessageHistoryUseCase.getPrivateHistory(requesterId, friendId, pageable))
+                .isInstanceOf(UnauthorizedChatAccessException.class)
+                .hasMessageContaining(friendId.toString());
+
+        verify(messageRepository, never()).findPrivateMessages(any(), any(), any());
+    }
 }

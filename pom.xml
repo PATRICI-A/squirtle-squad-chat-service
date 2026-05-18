@@ -77,6 +77,12 @@
 			<version>2.5.0</version>
 		</dependency>
 
+		<!-- Actuator (Health checks para Azure) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
 		<!-- Feign Client -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>

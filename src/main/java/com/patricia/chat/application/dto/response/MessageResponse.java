@@ -9,6 +9,7 @@ public class MessageResponse {
     private UUID id;
     private UUID parcheId;
     private UUID senderId;
+    private UUID receiverId;
     private String senderName;
     private String content;
     private MessageType type;
@@ -26,6 +27,9 @@ public class MessageResponse {
 
     public UUID getSenderId()                  { return senderId; }
     public void setSenderId(UUID senderId)     { this.senderId = senderId; }
+
+    public UUID getReceiverId()                { return receiverId; }
+    public void setReceiverId(UUID receiverId) { this.receiverId = receiverId; }
 
     public String getSenderName()              { return senderName; }
     public void setSenderName(String name)     { this.senderName = name; }

@@ -33,4 +33,11 @@ public class MessageRepositoryAdapter implements MessageRepositoryPort {
                 .findByParcheIdOrderBySentAtAsc(parcheId, pageable)
                 .map(mapper::toDomain);
     }
+
+    @Override
+    public Page<Message> findPrivateMessages(UUID user1, UUID user2, Pageable pageable) {
+        return mongoRepository
+                .findPrivateChatHistory(user1, user2, pageable)
+                .map(mapper::toDomain);
+    }
 }

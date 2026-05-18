@@ -15,11 +15,14 @@ public class SendMessageUseCaseImpl implements SendMessageUseCase {
 
     private final MessageRepositoryPort messageRepository;
     private final ParcheServicePort parcheService;
+    private final com.patricia.chat.domain.ports.out.ConnectionRepositoryPort connectionRepository;
 
     public SendMessageUseCaseImpl(MessageRepositoryPort messageRepository,
-                                  ParcheServicePort parcheService) {
+                                  ParcheServicePort parcheService,
+                                  com.patricia.chat.domain.ports.out.ConnectionRepositoryPort connectionRepository) {
         this.messageRepository = messageRepository;
         this.parcheService     = parcheService;
+        this.connectionRepository = connectionRepository;
     }
 
     @Override
@@ -38,6 +41,26 @@ public class SendMessageUseCaseImpl implements SendMessageUseCase {
 
         // 3. Crear y persistir
         Message message = new Message(parcheId, senderId, senderName, content, type);
+        message.setImageUrl(imageUrl);
+
+        return messageRepository.save(message);
+    }
+
+    @Override
+    public Message sendPrivateMessage(UUID senderId, String senderName, UUID receiverId,
+                                      String content, String imageUrl) {
+        // 1. Verificar conexión activa
+        if (!connectionRepository.hasActiveConnection(senderId, receiverId)) {
+            throw new UnauthorizedChatAccessException("No tienes una conexión activa con el usuario " + receiverId);
+        }
+
+        // 2. Determinar tipo de mensaje
+        MessageType type = (imageUrl != null && !imageUrl.isBlank())
+                ? MessageType.IMAGE
+                : MessageType.TEXT;
+
+        // 3. Crear y persistir
+        Message message = new Message(senderId, senderName, receiverId, content, type);
         message.setImageUrl(imageUrl);
 
         return messageRepository.save(message);

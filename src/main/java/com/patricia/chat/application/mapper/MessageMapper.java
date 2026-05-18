@@ -12,6 +12,7 @@ public class MessageMapper {
         response.setId(message.getId());
         response.setParcheId(message.getParcheId());
         response.setSenderId(message.getSenderId());
+        response.setReceiverId(message.getReceiverId());
         response.setSenderName(message.getSenderName());
         response.setContent(message.getContent());
         response.setType(message.getType());

@@ -19,8 +19,7 @@ import java.util.UUID;
  * Provides paginated access to the messages of a specific Parche group.
  */
 @RestController
-@RequestMapping("/api/parches/{parcheId}/messages")
-@Tag(name = "Messages", description = "Endpoints for retrieving Parche chat histories")
+@Tag(name = "Messages", description = "Endpoints for retrieving chat histories")
 public class MessageController {
 
     private final GetMessageHistoryUseCase getMessageHistoryUseCase;
@@ -43,7 +42,7 @@ public class MessageController {
      * @return a paginated response containing the messages sorted chronologically
      */
     @Operation(summary = "Get message history", description = "Retrieves a paginated list of chat messages for a specific Parche.")
-    @GetMapping
+    @GetMapping("/api/parches/{parcheId}/messages")
     public ResponseEntity<Page<MessageResponse>> getHistory(
             @PathVariable UUID parcheId,
             @RequestParam(defaultValue = "0") int page,
@@ -55,6 +54,34 @@ public class MessageController {
 
         Page<MessageResponse> result = getMessageHistoryUseCase
                 .getHistory(parcheId, requesterId, pageable)
+                .map(messageMapper::toResponse);
+
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Retrieves the paginated message history of a private chat with a friend.
+     * The requester must have an active connection with the friend.
+     * 
+     * @param friendId the UUID of the friend
+     * @param page the page number to retrieve (0-indexed)
+     * @param size the maximum number of messages per page
+     * @param auth the current user's authentication
+     * @return a paginated response containing the messages sorted chronologically
+     */
+    @Operation(summary = "Get private message history", description = "Retrieves a paginated list of chat messages for a private chat with a friend.")
+    @GetMapping("/api/friends/{friendId}/messages")
+    public ResponseEntity<Page<MessageResponse>> getPrivateHistory(
+            @PathVariable UUID friendId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication auth) {
+
+        UUID requesterId = UUID.fromString(auth.getName());
+        PageRequest pageable = PageRequest.of(page, size, Sort.by("sentAt").ascending());
+
+        Page<MessageResponse> result = getMessageHistoryUseCase
+                .getPrivateHistory(requesterId, friendId, pageable)
                 .map(messageMapper::toResponse);
 
         return ResponseEntity.ok(result);

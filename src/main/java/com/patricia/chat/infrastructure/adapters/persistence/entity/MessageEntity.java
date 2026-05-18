@@ -22,6 +22,10 @@ public class MessageEntity {
     @Field("sender_id")
     private UUID senderId;
 
+    @Indexed
+    @Field("receiver_id")
+    private UUID receiverId;
+
     @Field("sender_name")
     private String senderName;
 
@@ -44,6 +48,9 @@ public class MessageEntity {
 
     public UUID getSenderId()                  { return senderId; }
     public void setSenderId(UUID senderId)     { this.senderId = senderId; }
+
+    public UUID getReceiverId()                { return receiverId; }
+    public void setReceiverId(UUID receiverId) { this.receiverId = receiverId; }
 
     public String getSenderName()              { return senderName; }
     public void setSenderName(String name)     { this.senderName = name; }

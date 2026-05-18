@@ -13,6 +13,9 @@ public interface ConnectionMongoRepository extends MongoRepository<ConnectionEnt
     @Query("{ '$or': [ { 'requester_id': ?0, 'addressee_id': ?1 }, { 'requester_id': ?1, 'addressee_id': ?0 } ] }")
     List<ConnectionEntity> findBetween(UUID userA, UUID userB);
 
+    @Query("{ '$or': [ { 'requester_id': ?0, 'addressee_id': ?1 }, { 'requester_id': ?1, 'addressee_id': ?0 } ], 'status': 'ACCEPTED' }")
+    List<ConnectionEntity> findAcceptedBetween(UUID userA, UUID userB);
+
     @Query("{ '$or': [ { 'requester_id': ?0 }, { 'addressee_id': ?0 } ], 'status': 'ACCEPTED' }")
     List<ConnectionEntity> findAcceptedByUserId(UUID userId);
 

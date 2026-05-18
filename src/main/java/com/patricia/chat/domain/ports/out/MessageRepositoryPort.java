@@ -8,4 +8,5 @@ import java.util.UUID;
 public interface MessageRepositoryPort {
     Message save(Message message);
     Page<Message> findByParcheId(UUID parcheId, Pageable pageable);
+    Page<Message> findPrivateMessages(UUID user1, UUID user2, Pageable pageable);
 }

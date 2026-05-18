@@ -67,7 +67,8 @@ jobs:
           az containerapp update \
             --name patricia-chat-service-qa \
             --resource-group ${{ env.RESOURCE_GROUP }} \
-            --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:qa-latest
+            --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:qa-latest \
+            --revision-suffix rev-${{ github.run_number }}
 
       - name: Health check QA
         run: |

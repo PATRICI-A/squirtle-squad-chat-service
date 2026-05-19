@@ -7,6 +7,8 @@ import com.patricia.chat.application.mapper.ConnectionMapper;
 import com.patricia.chat.domain.ports.in.GetConnectionsUseCase;
 import com.patricia.chat.domain.ports.in.RespondConnectionRequestUseCase;
 import com.patricia.chat.domain.ports.in.SendConnectionRequestUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +19,12 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Endpoints REST para gestión de conexiones entre estudiantes (RF07).
+ * REST controller for managing student connections (Friend Requests).
+ * Provides endpoints for sending, accepting, rejecting and listing connections.
  */
 @RestController
 @RequestMapping("/api/connections")
+@Tag(name = "Connections", description = "Endpoints for managing user connections and friend requests")
 public class ConnectionController {
 
     private final SendConnectionRequestUseCase sendConnectionRequestUseCase;
@@ -38,7 +42,14 @@ public class ConnectionController {
         this.connectionMapper                = connectionMapper;
     }
 
-    /** POST /api/connections/request — Enviar solicitud de conexión */
+    /**
+     * Sends a new connection request to another user.
+     * 
+     * @param dto the request payload containing the addressee's UUID
+     * @param auth the current user's authentication
+     * @return the created connection response in PENDING state
+     */
+    @Operation(summary = "Send connection request", description = "Sends a new friend request to a specified user.")
     @PostMapping("/request")
     public ResponseEntity<ConnectionResponse> sendRequest(
             @Valid @RequestBody ConnectionRequestDto dto,
@@ -50,7 +61,15 @@ public class ConnectionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /** PATCH /api/connections/{connectionId} — Aceptar o rechazar solicitud */
+    /**
+     * Responds to an existing connection request.
+     * 
+     * @param connectionId the ID of the connection to respond to
+     * @param dto the response payload with ACCEPTED or REJECTED status
+     * @param auth the current user's authentication
+     * @return the updated connection response
+     */
+    @Operation(summary = "Respond to connection", description = "Accepts or rejects a pending connection request.")
     @PatchMapping("/{connectionId}")
     public ResponseEntity<ConnectionResponse> respond(
             @PathVariable UUID connectionId,
@@ -63,7 +82,13 @@ public class ConnectionController {
         return ResponseEntity.ok(response);
     }
 
-    /** GET /api/connections — Listar conexiones activas del usuario */
+    /**
+     * Retrieves all active (ACCEPTED) connections for the authenticated user.
+     * 
+     * @param auth the current user's authentication
+     * @return a list of active connections
+     */
+    @Operation(summary = "Get active connections", description = "Lists all accepted friend connections for the current user.")
     @GetMapping
     public ResponseEntity<List<ConnectionResponse>> getConnections(Authentication auth) {
         UUID userId = UUID.fromString(auth.getName());
@@ -72,7 +97,13 @@ public class ConnectionController {
         return ResponseEntity.ok(connections);
     }
 
-    /** GET /api/connections/pending — Ver solicitudes pendientes recibidas */
+    /**
+     * Retrieves all pending connection requests received by the authenticated user.
+     * 
+     * @param auth the current user's authentication
+     * @return a list of pending connection requests
+     */
+    @Operation(summary = "Get pending connections", description = "Lists all friend requests awaiting the user's response.")
     @GetMapping("/pending")
     public ResponseEntity<List<ConnectionResponse>> getPending(Authentication auth) {
         UUID userId = UUID.fromString(auth.getName());

@@ -12,6 +12,7 @@ public class MessagePersistenceMapper {
         entity.setId(message.getId());
         entity.setParcheId(message.getParcheId());
         entity.setSenderId(message.getSenderId());
+        entity.setReceiverId(message.getReceiverId());
         entity.setSenderName(message.getSenderName());
         entity.setContent(message.getContent());
         entity.setType(message.getType());
@@ -25,6 +26,7 @@ public class MessagePersistenceMapper {
         message.setId(entity.getId());
         message.setParcheId(entity.getParcheId());
         message.setSenderId(entity.getSenderId());
+        message.setReceiverId(entity.getReceiverId());
         message.setSenderName(entity.getSenderName());
         message.setContent(entity.getContent());
         message.setType(entity.getType());

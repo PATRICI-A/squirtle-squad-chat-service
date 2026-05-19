@@ -8,4 +8,8 @@ public class UnauthorizedChatAccessException extends RuntimeException {
     public UnauthorizedChatAccessException(String userId, String parcheId) {
         super("El usuario " + userId + " no es miembro del parche " + parcheId);
     }
+
+    public UnauthorizedChatAccessException(String message) {
+        super(message);
+    }
 }

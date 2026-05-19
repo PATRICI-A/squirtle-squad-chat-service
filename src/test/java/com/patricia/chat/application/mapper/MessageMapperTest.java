@@ -13,6 +13,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class MessageMapperTest {
 
+    private final MessageMapper mapper = new MessageMapper();
+
     @Test
     void toResponse_mapsAllFields() {
         Message message = new Message();
@@ -30,7 +32,6 @@ public class MessageMapperTest {
         message.setImageUrl(null);
         message.setSentAt(sentAt);
 
-        MessageMapper mapper = new MessageMapper();
         MessageResponse resp = mapper.toResponse(message);
 
         assertEquals(id, resp.getId());
@@ -41,5 +42,31 @@ public class MessageMapperTest {
         assertEquals(MessageType.TEXT, resp.getType());
         assertNull(resp.getImageUrl());
         assertEquals(sentAt, resp.getSentAt());
+        assertNull(resp.getReceiverId());
+    }
+
+    @Test
+    void toResponse_mapsReceiverIdForPrivateMessage() {
+        Message message = new Message();
+        UUID id = UUID.randomUUID();
+        UUID sender = UUID.randomUUID();
+        UUID receiver = UUID.randomUUID();
+        LocalDateTime sentAt = LocalDateTime.now();
+
+        message.setId(id);
+        message.setSenderId(sender);
+        message.setReceiverId(receiver);
+        message.setSenderName("Bob");
+        message.setContent("Mensaje privado");
+        message.setType(MessageType.TEXT);
+        message.setSentAt(sentAt);
+
+        MessageResponse resp = mapper.toResponse(message);
+
+        assertEquals(sender, resp.getSenderId());
+        assertEquals(receiver, resp.getReceiverId());
+        assertEquals("Mensaje privado", resp.getContent());
+        assertEquals(MessageType.TEXT, resp.getType());
     }
 }
+

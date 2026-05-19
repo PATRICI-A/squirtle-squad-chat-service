@@ -55,22 +55,16 @@ El equipo **Squirtle Squad** aplicó la metodología **Scrum** con sprints seman
 
 ## 2. ⚙️ Tecnologías Utilizadas
 
-| Tecnología / Herramienta | Uso principal en el proyecto |
-|---|---|
-| **Java 21** | Lenguaje principal de desarrollo |
-| **Spring Boot 3.3.0** | Framework principal del backend — gestión de dependencias y ciclo de vida de la aplicación |
-| **Spring Security** | Autenticación y autorización mediante JWT |
-| **Spring WebSocket + STOMP** | Canal de comunicación bidireccional en tiempo real para el chat |
-| **Spring Data MongoDB** | Persistencia de mensajes, historiales y conexiones |
-| **MongoDB Atlas** | Base de datos NoSQL en la nube para almacenamiento de datos no estructurados/semi-estructurados |
-| **OpenFeign** | Comunicación sincrónica con módulos externos (ej. Parche Service) |
-| **Lombok** | Reducción de código repetitivo con `@Builder`, `@Getter`, `@RequiredArgsConstructor` |
-| **SpringDoc OpenAPI 2.5.0** | Generación automática de documentación Swagger UI |
-| **JUnit 5 + Mockito** | Pruebas unitarias e integración con mocking de puertos y dependencias |
-| **JaCoCo** | Reportes de cobertura de código |
-| **Apache Maven 3.9** | Herramienta de construcción y gestión de dependencias |
-| **Docker + Docker Compose** | Contenedorización del servicio y orquestación local |
-| **GitHub Actions** | Pipeline de integración continua (build y pruebas automáticas) |
+| Categoría | Tecnología / Herramienta | Versión | Uso Principal |
+|---|---|---|---|
+| **Lenguaje** | ![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat&logo=openjdk&logoColor=white) | 21 | Lógica de negocio y servicios |
+| **Framework** | ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3.0-6DB33F?style=flat&logo=spring-boot&logoColor=white) | 3.3.0 | Núcleo del microservicio |
+| **Seguridad** | ![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=flat&logo=spring-security&logoColor=white) | - | Autenticación JWT y Filtros |
+| **Comunicación** | ![WebSocket](https://img.shields.io/badge/WebSocket-STOMP-blue?style=flat) | - | Chat en tiempo real |
+| **Persistencia** | ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat&logo=mongodb&logoColor=white) | Cloud | Mensajes y Conexiones |
+| **API Doc** | ![Swagger](https://img.shields.io/badge/Swagger-OpenAPI_3.0-85EA2D?style=flat&logo=swagger&logoColor=black) | 2.5.0 | Documentación interactiva |
+| **Calidad** | ![JaCoCo](https://img.shields.io/badge/JaCoCo-Report-red?style=flat) | 0.8.11 | Cobertura de pruebas |
+| **DevOps** | ![Docker](https://img.shields.io/badge/Docker-Container-2496ED?style=flat&logo=docker&logoColor=white) | - | Contenedorización |
 
 ---
 
@@ -211,8 +205,6 @@ Lista las conexiones del usuario actual.
 
 ### RF10 — Chat en Tiempo Real
 
-![Diagrama Secuencia Chat](docs/imagenes/SequenceChat.drawio.png)
-
 #### WebSocket (STOMP)
 
 ##### `CONNECT /ws/chat`
@@ -248,7 +240,7 @@ Recupera el historial de un parche paginado.
 mvn clean test
 ```
 
-> ⚠️ **Pendiente:** Agregar capturas de pantalla o reporte de ejecución de pruebas.
+![Evidencia de Pruebas Unitarias](docs/imagenes/evidencia_pruebas.png)
 
 ---
 
@@ -261,7 +253,7 @@ Las métricas de cobertura se generan con **JaCoCo**.
 mvn clean test jacoco:report
 ```
 
-> ⚠️ **Pendiente:** Agregar captura de pantalla del reporte JaCoCo.
+![Evidencia de Cobertura JaCoCo](docs/imagenes/evidencia_cobertura.png)
 
 ---
 
@@ -288,39 +280,84 @@ mvn spring-boot:run
 docker-compose up -d --build
 ```
 
+### Variables de Entorno
+
+| Variable | Descripción | Default |
+|---|---|---|
+| `SPRING_DATA_MONGODB_URI` | URI de conexión a MongoDB Atlas | Configurado en `application.properties` |
+| `JWT_SECRET` | Clave secreta para validación de tokens | `patricia-super-secret-key...` |
+| `PARCHE_SERVICE_URL` | URL base del microservicio de Parches | `http://localhost:8083` |
+| `AUTH_SERVICE_URL` | URL base del microservicio de Auth | `http://localhost:9090` |
+| `SERVER_PORT` | Puerto del servicio | `8084` |
+
 ---
 
 ## 10. 🔄 Evidencia CI/CD
 
-El proyecto cuenta con un pipeline de **GitHub Actions** que se ejecuta automáticamente en cada push y pull request a ramas protegidas.
+El proyecto cuenta con pipelines de **GitHub Actions** que se ejecutan automáticamente en cada push y pull request a ramas protegidas.
 
-> ⚠️ **Pendiente:** Agregar capturas de pantalla o badges del pipeline de GitHub Actions.
+**Estado actual de los Pipelines:**
+[![CI - Build & Test](https://github.com/PATRICI-A/squirtle-squad-chat-service/actions/workflows/ci.yml/badge.svg)](https://github.com/PATRICI-A/squirtle-squad-chat-service/actions/workflows/ci.yml)
+[![QA - Sonar Analysis](https://github.com/PATRICI-A/squirtle-squad-chat-service/actions/workflows/sonar.yml/badge.svg)](https://github.com/PATRICI-A/squirtle-squad-chat-service/actions/workflows/sonar.yml)
+[![CD - Azure Deploy](https://github.com/PATRICI-A/squirtle-squad-chat-service/actions/workflows/cd-azure.yml/badge.svg)](https://github.com/PATRICI-A/squirtle-squad-chat-service/actions/workflows/cd-azure.yml)
+
+**Historial de Ejecución:**
+![Evidencia GitHub Actions](docs/imagenes/evidencia_ci_cd.png)
 
 ---
 
 ## 11. 🌐 Link Expuesto en Azure/AWS con Swagger
 
-> ⚠️ **Pendiente:** Agregar el link público del servicio desplegado junto con la URL de Swagger UI.
+- **API Base URL:** `https://app-patricia-chat-hagjdqg3axcweqbw.canadacentral-01.azurewebsites.net`
+- **Swagger UI:** `https://app-patricia-chat-hagjdqg3axcweqbw.canadacentral-01.azurewebsites.net/swagger-ui/index.html`
 
 ---
 
 ## 12. 🗂️ Organización del Código
 
-Sigue el patrón de **Arquitectura Hexagonal**.
+El microservicio sigue **Arquitectura Hexagonal (Ports & Adapters)** con Clean Architecture.
 
 ```
 squirtle-squad-chat-service/
 │
 ├── 📁 src/
-│   ├── 📁 main/java/com/patricia/chat/
-│   │   ├── 📁 domain/          # Entidades y Puertos
-│   │   ├── 📁 application/     # Casos de uso
-│   │   ├── 📁 entrypoints/     # Controladores REST y WebSocket
-│   │   └── 📁 infrastructure/  # Adaptadores (Mongo, Feign)
-│   └── 📁 test/                # Pruebas Unitarias
+│   ├── 📁 main/
+│   │   ├── 📁 java/com/patricia/chat/
+│   │   │   │
+│   │   │   ├── 📁 domain/                          # 🟢 DOMINIO (sin dependencias externas)
+│   │   │   │   ├── 📁 model/                       # Entidades: Connection, Message, Parche
+│   │   │   │   ├── 📁 ports/
+│   │   │   │   │   ├── 📁 in/                      # Interfaces de casos de uso (puertos de entrada)
+│   │   │   │   │   └── 📁 out/                     # Interfaces de repositorios y entrega (puertos de salida)
+│   │   │   │   └── 📁 exceptions/                  # Excepciones de dominio
+│   │   │   │
+│   │   │   ├── 📁 application/                     # 🔵 APLICACIÓN
+│   │   │   │   ├── 📁 usecase/                     # Implementaciones de los casos de uso
+│   │   │   │   ├── 📁 dto/
+│   │   │   │   │   ├── 📁 request/                 # DTOs de entrada
+│   │   │   │   │   └── 📁 response/                # DTOs de salida
+│   │   │   │   └── 📁 mapper/                      # Mappers de dominio
+│   │   │   │
+│   │   │   ├── 📁 rest/                            # 🟠 PUERTOS DE ENTRADA (REST)
+│   │   │   │   └── 📁 controller/                  # ConnectionController, MessageController, ChatWebSocketController
+│   │   │   │
+│   │   │   ├── 📁 advice/                          # 🟠 MANEJO DE ERRORES
+│   │   │   │   └── GlobalExceptionHandler
+│   │   │   │
+│   │   │   └── 📁 infrastructure/                  # 🔴 INFRAESTRUCTURA
+│   │   │       ├── 📁 adapters/
+│   │   │       │   └── 📁 persistence/             # Documentos MongoDB, mappers de persistencia, repositorios Spring Data
+│   │   │       ├── 📁 config/                      # WebSocketConfig, MongoConfig, SecurityConfig, OpenApiConfig
+│   │   │       └── 📁 external/                    # Clientes Feign para otros microservicios (ParcheService)
+│   │   │
+│   │   └── 📁 resources/
+│   │       └── application.properties
+│   │
+│   └── 📁 test/                                    # 🧪 PRUEBAS UNITARIAS
 │
 ├── 📄 Dockerfile
 ├── 📄 docker-compose.yml
+├── 📄 pom.xml
 └── 📄 README.md
 ```
 
@@ -328,33 +365,86 @@ squirtle-squad-chat-service/
 
 ## 13. 📝 Código Documentado
 
-> ⚠️ **Pendiente:** Agregar ejemplos representativos del código documentado con Javadoc.
+Todo el código del microservicio está documentado con **JavaDoc en inglés**, incluyendo:
+
+- **Dominio:** Entidades, excepciones, puertos de entrada y salida
+- **Aplicación:** Interfaces e implementaciones de casos de uso, DTOs (con `@Schema` Swagger), mappers
+- **Entrypoints:** Controladores REST (con `@Tag`, `@Operation`, `@ApiResponse`), exception handler
+- **Infraestructura:** Adaptadores, documentos MongoDB, mappers de persistencia, todas las clases de configuración
+
+Las anotaciones Swagger (`@Tag`, `@Operation`, `@ApiResponse`, `@Schema`) están accesibles desde la URL del Swagger UI.
 
 ---
 
 ## 14. 🔗 Conexiones con Servicios Externos
 
-| Servicio Externo | Propósito |
-|---|---|
-| **MongoDB Atlas** | Persistencia de mensajes y conexiones |
-| **Parche Service** | Verificación de membresía (OpenFeign) |
-| **Auth Service** | Validación de tokens de autenticación |
+| Servicio Externo | Tipo de Conexión | Propósito |
+|---|---|---|
+| **MongoDB Atlas** | Spring Data MongoDB | Persistencia de mensajes de chat y conexiones de usuarios |
+| **Parche Service** | OpenFeign (HTTP sincrónico) | Verificación de membresía antes de permitir interactuar en el chat |
+| **Auth Service** | Verificación de JWT local | Validación de tokens de autenticación para acceso a endpoints |
+
+### Configuración requerida
+
+Todas las credenciales se inyectan mediante variables de entorno (MongoDB URI, JWT secret). No hay valores sensibles hardcodeados en el código.
 
 ---
 
 ## 15. ⚙️ Pipeline de Desarrollo
 
-Igual que en los demás microservicios, se implementa mediante flujos de trabajo de GitHub Actions bajo la convención de ramas `feature/*` -> `develop` -> `main`.
+El pipeline de desarrollo se ejecuta en **GitHub Actions** al hacer push a ramas `feature/*` o PR hacia `develop` o `main`.
 
-> ⚠️ **Pendiente:** Agregar archivo YAML o fragmento del pipeline.
+### Estrategia de Ramas (Git Flow)
+
+| Rama | Propósito | Reglas |
+|---|---|---|
+| `main` | Versión estable lista para demo/producción | Solo recibe merges desde ramas de feature una vez finalizadas. PR obligatorio con aprobaciones y CI en verde. |
+| `feature/*` | Desarrollo de una funcionalidad específica | Base: `main` o `develop`. Cierre: PR hacia `main`. |
+
+### Convenciones de Ramas
+
+```
+feature/[NombreFuncionalidad]
+
+Ejemplos:
+  feature/setup-devops
+  feature/ChatWebSocket
+```
+
+### Convenciones de Commits
+
+```
+Feat: [Descripción de la acción realizada]
+
+Ejemplos:
+  Feat: Configuracion WebSocket
+  Feat: Correcion de Seguridad
+  Feat: Despliegue en Azure
+```
+
+### Etapas del Pipeline de Desarrollo
+
+El flujo de Integración Continua (CI) ejecuta:
+- Checkout del código
+- Setup Java 21
+- Ejecución de pruebas unitarias con Maven (`mvn clean test`)
+- Validación de despliegue Docker
+- Análisis de calidad y seguridad con SonarCloud
 
 ---
 
 ## 16. 🚢 Pipeline de PROD
 
-El pipeline de producción se activa al hacer merge a `main`, construye la imagen Docker y la despliega.
+El pipeline de producción se activa al hacer push o merge a `main`.
 
-> ⚠️ **Pendiente:** Agregar evidencia del despliegue exitoso a Azure/AWS.
+### Etapas del Pipeline de PROD
+
+El flujo de Despliegue Continuo (CD) en Azure ejecuta:
+- Checkout del código
+- Setup Java 21
+- Compilación del JAR (`mvn clean package -DskipTests`)
+- Despliegue automatizado a **Azure Web App** utilizando credenciales seguras (Service Principal)
+- Health check implícito al exponer el servicio
 
 ---
 

@@ -10,4 +10,7 @@ public interface SendMessageUseCase {
      */
     Message sendMessage(UUID parcheId, UUID senderId, String senderName,
                         String content, String imageUrl);
+
+    Message sendPrivateMessage(UUID senderId, String senderName, UUID receiverId,
+                               String content, String imageUrl);
 }

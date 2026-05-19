@@ -39,6 +39,11 @@ public class ConnectionRepositoryAdapter implements ConnectionRepositoryPort {
     }
 
     @Override
+    public boolean hasActiveConnection(UUID userA, UUID userB) {
+        return !mongoRepository.findAcceptedBetween(userA, userB).isEmpty();
+    }
+
+    @Override
     public List<Connection> findByUserId(UUID userId) {
         return mongoRepository.findAcceptedByUserId(userId)
                 .stream().map(mapper::toDomain).toList();

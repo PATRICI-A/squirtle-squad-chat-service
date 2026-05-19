@@ -11,4 +11,10 @@ public interface GetMessageHistoryUseCase {
      * Solo accesible para miembros del parche.
      */
     Page<Message> getHistory(UUID parcheId, UUID requesterId, Pageable pageable);
+
+    /**
+     * Retorna el historial paginado de mensajes de un chat privado.
+     * Solo accesible si hay conexión activa.
+     */
+    Page<Message> getPrivateHistory(UUID requesterId, UUID friendId, Pageable pageable);
 }

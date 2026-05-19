@@ -16,11 +16,14 @@ public class GetMessageHistoryUseCaseImpl implements GetMessageHistoryUseCase {
 
     private final MessageRepositoryPort messageRepository;
     private final ParcheServicePort parcheService;
+    private final com.patricia.chat.domain.ports.out.ConnectionRepositoryPort connectionRepository;
 
     public GetMessageHistoryUseCaseImpl(MessageRepositoryPort messageRepository,
-                                        ParcheServicePort parcheService) {
+                                        ParcheServicePort parcheService,
+                                        com.patricia.chat.domain.ports.out.ConnectionRepositoryPort connectionRepository) {
         this.messageRepository = messageRepository;
         this.parcheService     = parcheService;
+        this.connectionRepository = connectionRepository;
     }
 
     @Override
@@ -29,5 +32,13 @@ public class GetMessageHistoryUseCaseImpl implements GetMessageHistoryUseCase {
             throw new UnauthorizedChatAccessException(requesterId.toString(), parcheId.toString());
         }
         return messageRepository.findByParcheId(parcheId, pageable);
+    }
+
+    @Override
+    public Page<Message> getPrivateHistory(UUID requesterId, UUID friendId, Pageable pageable) {
+        if (!connectionRepository.hasActiveConnection(requesterId, friendId)) {
+            throw new UnauthorizedChatAccessException("No tienes una conexión activa con el usuario " + friendId);
+        }
+        return messageRepository.findPrivateMessages(requesterId, friendId, pageable);
     }
 }

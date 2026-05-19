@@ -17,6 +17,7 @@ public class Message {
     private MessageType type;
     private String imageUrl;
     private LocalDateTime sentAt;
+    private UUID receiverId;
 
     public Message() {}
 
@@ -31,6 +32,17 @@ public class Message {
         this.sentAt   = LocalDateTime.now();
     }
 
+    public Message(UUID senderId, String senderName, UUID receiverId,
+                   String content, MessageType type) {
+        this.id       = UUID.randomUUID();
+        this.senderId = senderId;
+        this.senderName = senderName;
+        this.receiverId = receiverId;
+        this.content  = content;
+        this.type     = type;
+        this.sentAt   = LocalDateTime.now();
+    }
+
     // Getters y setters
     public UUID getId()                      { return id; }
     public void setId(UUID id)               { this.id = id; }
@@ -40,6 +52,9 @@ public class Message {
 
     public UUID getSenderId()                { return senderId; }
     public void setSenderId(UUID senderId)   { this.senderId = senderId; }
+
+    public UUID getReceiverId()              { return receiverId; }
+    public void setReceiverId(UUID receiverId) { this.receiverId = receiverId; }
 
     public String getSenderName()            { return senderName; }
     public void setSenderName(String name)   { this.senderName = name; }

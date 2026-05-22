@@ -6,6 +6,7 @@ import com.patricia.chat.domain.model.MessageType;
 import com.patricia.chat.domain.ports.in.SendMessageUseCase;
 import com.patricia.chat.domain.ports.out.MessageRepositoryPort;
 import com.patricia.chat.domain.ports.out.ParcheServicePort;
+import com.patricia.chat.infrastructure.messaging.ChatNotificationPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -16,13 +17,16 @@ public class SendMessageUseCaseImpl implements SendMessageUseCase {
     private final MessageRepositoryPort messageRepository;
     private final ParcheServicePort parcheService;
     private final com.patricia.chat.domain.ports.out.ConnectionRepositoryPort connectionRepository;
+    private final ChatNotificationPublisher chatNotificationPublisher;
 
     public SendMessageUseCaseImpl(MessageRepositoryPort messageRepository,
                                   ParcheServicePort parcheService,
-                                  com.patricia.chat.domain.ports.out.ConnectionRepositoryPort connectionRepository) {
+                                  com.patricia.chat.domain.ports.out.ConnectionRepositoryPort connectionRepository,
+                                  ChatNotificationPublisher chatNotificationPublisher) {
         this.messageRepository = messageRepository;
         this.parcheService     = parcheService;
         this.connectionRepository = connectionRepository;
+        this.chatNotificationPublisher = chatNotificationPublisher;
     }
 
     @Override
@@ -63,6 +67,18 @@ public class SendMessageUseCaseImpl implements SendMessageUseCase {
         Message message = new Message(senderId, senderName, receiverId, content, type);
         message.setImageUrl(imageUrl);
 
-        return messageRepository.save(message);
+        Message saved = messageRepository.save(message);
+
+        // 4. Publicar evento a RabbitMQ para notificaciones (solo privados)
+        try {
+            chatNotificationPublisher.publishChatMessage(saved);
+        } catch (Exception ex) {
+            // Manejo ligero: no romper el flujo de envío si la publicación falla.
+            // Puedes loggear o reintentar según necesidades.
+            // Ejemplo:
+            // logger.warn("No se pudo publicar evento de notificación: {}", ex.getMessage());
+        }
+
+        return saved;
     }
 }

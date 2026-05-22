@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class SendMessageUseCaseImpl implements SendMessageUseCase {
 
@@ -71,12 +74,9 @@ public class SendMessageUseCaseImpl implements SendMessageUseCase {
 
         // 4. Publicar evento a RabbitMQ para notificaciones (solo privados)
         try {
-            chatNotificationPublisher.publishChatMessage(saved);
+            chatNotificationPublisher.publishPrivateMessageNotification(saved);
         } catch (Exception ex) {
-            // Manejo ligero: no romper el flujo de envío si la publicación falla.
-            // Puedes loggear o reintentar según necesidades.
-            // Ejemplo:
-            // logger.warn("No se pudo publicar evento de notificación: {}", ex.getMessage());
+            log.warn("No se pudo publicar evento de notificación: {}", ex.getMessage());
         }
 
         return saved;

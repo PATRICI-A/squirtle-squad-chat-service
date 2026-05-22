@@ -1,34 +1,39 @@
 package com.patricia.chat.infrastructure.messaging;
 
 import com.patricia.chat.domain.model.Message;
-import com.patricia.chat.infrastructure.messaging.dto.ChatMessageEventDto;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import com.patricia.chat.infrastructure.config.RabbitMQConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
+@Slf4j
 @Component
-@RequiredArgsConstructor
 public class ChatNotificationPublisher {
 
     private final RabbitTemplate rabbitTemplate;
 
-    @Value("${rabbitmq.exchange.chat}")
-    private String chatExchange;
+    public ChatNotificationPublisher(RabbitTemplate rabbitTemplate) {
+        this.rabbitTemplate = rabbitTemplate;
+    }
 
-    @Value("${rabbitmq.routing-key.chat-message}")
-    private String chatMessageRoutingKey;
+    public void publishPrivateMessageNotification(Message message) {
+        Map<String, Object> event = Map.of(
+                "type",       "CHAT_MESSAGE",
+                "senderId",   message.getSenderId().toString(),
+                "receiverId", message.getReceiverId().toString(),
+                "senderName", message.getSenderName(),
+                "content",    message.getContent(),
+                "sentAt",     message.getSentAt().toString()
+        );
 
-    public void publishChatMessage(Message message) {
-        if (message.getReceiverId() == null) return;
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE,
+                RabbitMQConfig.ROUTING_KEY,
+                event
+        );
 
-        ChatMessageEventDto event = ChatMessageEventDto.builder()
-                .recipientUserId(message.getReceiverId())
-                .senderName(message.getSenderName())
-                .conversationId(message.getId())
-                .build();
-
-        rabbitTemplate.convertAndSend(chatExchange, chatMessageRoutingKey, event);
+        log.info("Publishing chat notification to exchange: {}", RabbitMQConfig.EXCHANGE);
     }
 }
-

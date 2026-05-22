@@ -100,3 +100,13 @@ jobs:
         run: |
           docker build \
             -t chat-service:ci .
+          
+      - name: Run tests
+        env:
+            SPRING_PROFILES_ACTIVE: test
+            MONGO_URI: ${{ secrets.MONGO_URI_TEST }}
+            RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+            RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
+            RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
+            RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+        run: mvn clean verify -B

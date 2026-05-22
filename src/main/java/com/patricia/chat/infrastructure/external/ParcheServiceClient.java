@@ -16,6 +16,6 @@ import java.util.UUID;
 @FeignClient(name = "parche-service", url = "${parche-service.url}")
 public interface ParcheServiceClient {
 
-    @GetMapping("/api/parches/{parcheId}/members/{userId}/check")
+    @GetMapping("/api/v1/parches/{parcheId}/miembros/{userId}/check")
     boolean isMember(@PathVariable UUID parcheId, @PathVariable UUID userId);
 }

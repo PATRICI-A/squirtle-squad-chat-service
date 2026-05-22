@@ -23,7 +23,10 @@ public class ParcheServiceAdapter implements ParcheServicePort {
 
     @Override
     public boolean isMember(UUID parcheId, UUID userId) {
-        // TODO: conectar con Parche Service (Equipo 3) cuando esté disponible
-        return true;
+        try {
+            return parcheServiceClient.isMember(parcheId, userId);
+        } catch (Exception ex) {
+            return false;
+        }
     }
 }

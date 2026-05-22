@@ -1,15 +1,14 @@
 package com.patricia.chat.infrastructure.messaging;
 
 import com.patricia.chat.domain.model.Message;
-import lombok.extern.slf4j.Slf4j;
+import com.patricia.chat.infrastructure.messaging.dto.ChatMessageEventDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.annotation.Value;
 
-import java.util.Map;
-
-@Slf4j
 @Component
+@RequiredArgsConstructor
 public class ChatNotificationPublisher {
 
     private final RabbitTemplate rabbitTemplate;
@@ -17,24 +16,19 @@ public class ChatNotificationPublisher {
     @Value("${rabbitmq.exchange.chat}")
     private String chatExchange;
 
-    @Value("${rabbitmq.routing-key.chat:chat.notification}")
-    private String routingKey;
+    @Value("${rabbitmq.routing-key.chat-message}")
+    private String chatMessageRoutingKey;
 
-    public ChatNotificationPublisher(RabbitTemplate rabbitTemplate) {
-        this.rabbitTemplate = rabbitTemplate;
-    }
+    public void publishChatMessage(Message message) {
+        if (message.getReceiverId() == null) return;
 
-    public void publishPrivateMessageNotification(Message message) {
-        Map<String, Object> event = Map.of(
-                "type",       "CHAT_MESSAGE",
-                "senderId",   message.getSenderId().toString(),
-                "receiverId", message.getReceiverId().toString(),
-                "senderName", message.getSenderName(),
-                "content",    message.getContent(),
-                "sentAt",     message.getSentAt().toString()
-        );
+        ChatMessageEventDto event = ChatMessageEventDto.builder()
+                .recipientUserId(message.getReceiverId())
+                .senderName(message.getSenderName())
+                .conversationId(message.getId())
+                .build();
 
-        rabbitTemplate.convertAndSend(chatExchange, routingKey, event);
-        log.info("Publishing chat notification to exchange: {}", chatExchange);
+        rabbitTemplate.convertAndSend(chatExchange, chatMessageRoutingKey, event);
     }
 }
+

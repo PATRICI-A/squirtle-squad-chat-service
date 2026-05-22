@@ -5,6 +5,7 @@ import com.patricia.chat.infrastructure.config.RabbitMQConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Map;
 
@@ -13,6 +14,12 @@ import java.util.Map;
 public class ChatNotificationPublisher {
 
     private final RabbitTemplate rabbitTemplate;
+
+    @Value("${rabbitmq.exchange.chat}")
+    private String chatExchange;
+
+    @Value("${rabbitmq.routing-key.chat:chat.notification}")
+    private String routingKey;
 
     public ChatNotificationPublisher(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
@@ -28,12 +35,7 @@ public class ChatNotificationPublisher {
                 "sentAt",     message.getSentAt().toString()
         );
 
-        rabbitTemplate.convertAndSend(
-                RabbitMQConfig.EXCHANGE,
-                RabbitMQConfig.ROUTING_KEY,
-                event
-        );
-
-        log.info("Publishing chat notification to exchange: {}", RabbitMQConfig.EXCHANGE);
+        rabbitTemplate.convertAndSend(chatExchange, routingKey, event);
+        log.info("Publishing chat notification to exchange: {}", chatExchange);
     }
 }

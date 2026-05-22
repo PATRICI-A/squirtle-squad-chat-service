@@ -1,7 +1,6 @@
 package com.patricia.chat.infrastructure.messaging;
 
 import com.patricia.chat.domain.model.Message;
-import com.patricia.chat.infrastructure.config.RabbitMQConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;

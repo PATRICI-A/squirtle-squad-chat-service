@@ -1,8 +1,11 @@
 package com.patricia.chat.rest.controller;
 
+import com.patricia.chat.application.dto.request.SendMessageRequest;
 import com.patricia.chat.application.dto.response.MessageResponse;
 import com.patricia.chat.application.mapper.MessageMapper;
+import com.patricia.chat.domain.model.Message;
 import com.patricia.chat.domain.ports.in.GetMessageHistoryUseCase;
+import com.patricia.chat.domain.ports.in.SendMessageUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,9 +17,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.UUID;
 
@@ -39,12 +46,40 @@ import java.util.UUID;
 public class MessageController {
 
     private final GetMessageHistoryUseCase getMessageHistoryUseCase;
+    private final SendMessageUseCase sendMessageUseCase;
     private final MessageMapper messageMapper;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public MessageController(GetMessageHistoryUseCase getMessageHistoryUseCase,
-                             MessageMapper messageMapper) {
+                             SendMessageUseCase sendMessageUseCase,
+                             MessageMapper messageMapper,
+                             SimpMessagingTemplate messagingTemplate) {
         this.getMessageHistoryUseCase = getMessageHistoryUseCase;
+        this.sendMessageUseCase       = sendMessageUseCase;
         this.messageMapper            = messageMapper;
+        this.messagingTemplate        = messagingTemplate;
+    }
+
+    @PostMapping("/api/parches/{parcheId}/messages")
+    public ResponseEntity<MessageResponse> sendMessage(
+            @PathVariable UUID parcheId,
+            @Valid @RequestBody SendMessageRequest request,
+            Authentication auth) {
+
+        UUID senderId = UUID.fromString(auth.getName());
+        String senderName = extractSenderName(auth);
+
+        Message message = sendMessageUseCase.sendMessage(
+                parcheId,
+                senderId,
+                senderName,
+                request.getContent(),
+                request.getImageUrl()
+        );
+
+        MessageResponse response = messageMapper.toResponse(message);
+        messagingTemplate.convertAndSend("/topic/parches/" + parcheId, response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(
@@ -270,5 +305,14 @@ public class MessageController {
                 .map(messageMapper::toResponse);
 
         return ResponseEntity.ok(result);
+    }
+
+    private String extractSenderName(Authentication auth) {
+        if (auth instanceof UsernamePasswordAuthenticationToken token
+                && token.getDetails() instanceof String email
+                && !email.isBlank()) {
+            return email;
+        }
+        return "Usuario";
     }
 }

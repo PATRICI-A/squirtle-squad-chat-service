@@ -2,6 +2,7 @@ package com.patricia.chat.rest.controller;
 
 import com.patricia.chat.application.dto.request.ConnectionRequestDto;
 import com.patricia.chat.application.dto.request.RespondConnectionDto;
+import com.patricia.chat.application.dto.request.SendMessageRequest;
 import com.patricia.chat.application.dto.response.ConnectionResponse;
 import com.patricia.chat.application.dto.response.MessageResponse;
 import com.patricia.chat.application.mapper.ConnectionMapper;
@@ -14,12 +15,14 @@ import com.patricia.chat.domain.ports.in.GetConnectionsUseCase;
 import com.patricia.chat.domain.ports.in.GetMessageHistoryUseCase;
 import com.patricia.chat.domain.ports.in.RespondConnectionRequestUseCase;
 import com.patricia.chat.domain.ports.in.SendConnectionRequestUseCase;
+import com.patricia.chat.domain.ports.in.SendMessageUseCase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -44,7 +47,9 @@ class ChatRestControllersTest {
     @Mock ConnectionMapper connectionMapper;
 
     @Mock GetMessageHistoryUseCase getMessageHistoryUseCase;
+    @Mock SendMessageUseCase sendMessageUseCase;
     @Mock MessageMapper messageMapper;
+    @Mock SimpMessagingTemplate messagingTemplate;
 
     @InjectMocks ConnectionController connectionController;
     @InjectMocks MessageController messageController;
@@ -164,6 +169,31 @@ class ChatRestControllersTest {
         assertThat(captor.getValue().getPageNumber()).isEqualTo(0);
         assertThat(captor.getValue().getPageSize()).isEqualTo(20);
         assertThat(captor.getValue().getSort().getOrderFor("sentAt")).isNotNull();
+    }
+
+    @Test
+    void sendMessage_returnsCreatedAndBroadcasts() {
+        UUID parcheId = UUID.randomUUID();
+        UUID senderId = UUID.randomUUID();
+
+        SendMessageRequest request = new SendMessageRequest();
+        request.setContent("Hola");
+
+        Message message = new Message(parcheId, senderId, "Usuario", "Hola", MessageType.TEXT);
+        message.setId(UUID.randomUUID());
+
+        MessageResponse response = new MessageResponse();
+        response.setId(message.getId());
+
+        when(sendMessageUseCase.sendMessage(parcheId, senderId, "Usuario", "Hola", null)).thenReturn(message);
+        when(messageMapper.toResponse(message)).thenReturn(response);
+
+        ResponseEntity<MessageResponse> result = messageController.sendMessage(parcheId, request, auth(senderId));
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(result.getBody()).isSameAs(response);
+        verify(sendMessageUseCase).sendMessage(parcheId, senderId, "Usuario", "Hola", null);
+        verify(messagingTemplate).convertAndSend("/topic/parches/" + parcheId, response);
     }
 }
 

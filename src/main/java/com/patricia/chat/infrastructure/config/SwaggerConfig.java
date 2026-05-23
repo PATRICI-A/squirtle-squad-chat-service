@@ -2,7 +2,6 @@ package com.patricia.chat.infrastructure.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
@@ -51,11 +50,7 @@ public class SwaggerConfig {
                                 All write endpoints require a valid Bearer JWT token issued by the authentication \
                                 service. The user ID is extracted from the JWT `sub` claim.
                                 """)
-                        .version("v1.0.0")
-                        .contact(new Contact()
-                                .name("PATRICI.A Platform Team")
-                                .email("support@eci.edu.co")
-                                .url("https://www.escuelaing.edu.co")))
+                        .version("v1.0.0"))
                 .addSecurityItem(new SecurityRequirement().addList(BEARER_SCHEME))
                 .components(new Components()
                         .addSecuritySchemes(BEARER_SCHEME, createSecurityScheme()))
@@ -79,6 +74,7 @@ public class SwaggerConfig {
                                 All endpoints require a valid Bearer JWT token and resolve the authenticated \
                                 user's identity from the token's `sub` claim.
                                 """));
+
     }
 
     /**
